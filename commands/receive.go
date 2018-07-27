@@ -26,20 +26,23 @@ var receiveCmd = &cobra.Command{
 }
 
 func receiveFunc(cmd *cobra.Command, args []string) {
+	portAddr := fmt.Sprintf(":%d", port)
 	path, err := filepath.Abs(dir)
-	if err != nil {
-		logger.Error(err.Error())
-	} else if !utils.IsDir(path) {
+	utils.Catch(err)
+
+	if !utils.IsDir(path) {
 		logger.Error(fmt.Sprintf("The path %s is either not a directory or does not exist.", path))
 	}
 
-	portAddr := fmt.Sprintf(":%d", port)
-	ln, _ := net.Listen("tcp", portAddr)
-	defer ln.Close()
+	server, err := net.Listen("tcp", portAddr)
+	defer server.Close()
+	utils.Catch(err)
+
 	logger.Info(fmt.Sprintf("Listening for connections on %s", portAddr))
 
-	conn, _ := ln.Accept()
-	defer conn.Close()
+	conn, err := server.Accept()
+	utils.Catch(err)
+	utils.ReceiveFile(conn, dir)
 
 	logger.Info(fmt.Sprintf("Connection received from %s", conn.RemoteAddr()))
 }

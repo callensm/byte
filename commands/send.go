@@ -34,17 +34,18 @@ func sendFunc(cmd *cobra.Command, args []string) {
 	}
 
 	path, err := filepath.Abs(file)
-	if err != nil {
-		logger.Error(err.Error())
-	} else if !utils.IsFile(path) {
+	utils.Catch(err)
+
+	if !utils.IsFile(path) {
 		logger.Error(fmt.Sprintf("The path %s is either not a file or does not exist", path))
 	}
 
 	finalAddr := strings.Join(address, ":")
 	logger.Info(fmt.Sprintf("Attempting to connect to %s", finalAddr))
 
-	conn, _ := net.Dial("tcp", finalAddr)
-	defer conn.Close()
+	conn, err := net.Dial("tcp", finalAddr)
+	utils.Catch(err)
+	utils.SendFile(conn, path)
 
 	logger.Info("Connected to destination socket!")
 }
