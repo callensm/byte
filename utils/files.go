@@ -40,10 +40,10 @@ func IsFile(path string) bool {
 	return info.Mode().IsRegular()
 }
 
-// SendFile reads the argued file name
+// Upload reads the argued file name
 // and writes the data to the socket connection
 // to be downloaded at the destination socket
-func SendFile(conn net.Conn, path string) {
+func Upload(conn net.Conn, path string) {
 	// Open the file at the argued path and get the information for it
 	file, err := os.Open(path)
 	Catch(err)
@@ -72,10 +72,10 @@ func SendFile(conn net.Conn, path string) {
 	logger.FileSuccess(fileInfo.Name())
 }
 
-// ReceiveFile reads all file data from the incoming
+// Download reads all file data from the incoming
 // socket buffer and rewrites the data into a new local
 // file with the same name
-func ReceiveFile(conn net.Conn, dir string) {
+func Download(conn net.Conn, dir string) {
 	// Create the file name and size buffers to read the socket into
 	fileNameBuffer := make([]byte, FileNameBufferSize)
 	fileSizeBuffer := make([]byte, FileSizeBufferSize)

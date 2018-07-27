@@ -18,9 +18,9 @@ var source string
 
 func init() {
 	sendCmd.Flags().StringVarP(&addr, "addr", "a", "", "Address to attempt to connect to [IP_ADRR:PORT] or [IP_ADDR] for default port")
-	sendCmd.Flags().StringVarP(&source, "source", "s", "", "Path to the source of the file(s) being sent")
+	sendCmd.Flags().StringVarP(&source, "src", "s", "", "Path to the source of the file(s) being sent")
 	sendCmd.MarkFlagRequired("addr")
-	sendCmd.MarkFlagRequired("source")
+	sendCmd.MarkFlagRequired("src")
 	rootCmd.AddCommand(sendCmd)
 }
 
@@ -63,7 +63,7 @@ func sendFunc(cmd *cobra.Command, args []string) {
 		// one file if the path pointer to a single file
 		// and then send the file through the connection
 		conn.Write([]byte("001"))
-		utils.SendFile(conn, path)
+		utils.Upload(conn, path)
 	} else {
 		// Get the list of all files in the argued
 		// directory and create the string that indicates
@@ -78,7 +78,7 @@ func sendFunc(cmd *cobra.Command, args []string) {
 		logger.Directory(len(fileList), path, true)
 		conn.Write([]byte(countMsg))
 		for _, f := range fileList {
-			utils.SendFile(conn, filepath.Join(path, f.Name()))
+			utils.Upload(conn, filepath.Join(path, f.Name()))
 			time.Sleep(100 * time.Millisecond)
 		}
 	}

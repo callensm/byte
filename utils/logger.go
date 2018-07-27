@@ -66,7 +66,7 @@ func (l *Logger) Directory(size int, path string, sending bool) {
 	if sending {
 		text = color.WhiteString("Sending %d files from %s:", size, path)
 	} else {
-		text = color.WhiteString("Writting %d files to %s:", size, path)
+		text = color.WhiteString("Writing %d files to %s:", size, path)
 	}
 	display("📁", text)
 }

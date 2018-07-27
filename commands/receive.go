@@ -64,6 +64,6 @@ func receiveFunc(cmd *cobra.Command, args []string) {
 	// to be rewritten to the destination path
 	logger.Directory(int(count), path, false)
 	for x := 0; x < int(count); x++ {
-		utils.ReceiveFile(conn, dir)
+		utils.Download(conn, dir)
 	}
 }
