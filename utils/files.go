@@ -14,6 +14,8 @@ const (
 	FileNameBufferSize = 64
 	// FileSizeBufferSize is the byte size of the file size write
 	FileSizeBufferSize = 10
+	// FileCountBufferSize is the byte size of the number of files write
+	FileCountBufferSize = 3
 	// BufferSize is the byte size of the buffer used to transmit file data
 	BufferSize = 1024
 )
@@ -42,7 +44,7 @@ func IsFile(path string) bool {
 // and writes the data to the socket connection
 // to be downloaded at the destination socket
 func SendFile(conn net.Conn, path string) {
-	defer conn.Close()
+	// defer conn.Close()
 	file, err := os.Open(path)
 	Catch(err)
 
@@ -63,13 +65,14 @@ func SendFile(conn net.Conn, path string) {
 		}
 		conn.Write(fileDataBuffer)
 	}
+	logger.FileSuccess(fileInfo.Name(), "sent")
 }
 
 // ReceiveFile reads all file data from the incoming
 // socket buffer and rewrites the data into a new local
 // file with the same name
 func ReceiveFile(conn net.Conn, dir string) {
-	defer conn.Close()
+	// defer conn.Close()
 	fileNameBuffer := make([]byte, FileNameBufferSize)
 	fileSizeBuffer := make([]byte, FileSizeBufferSize)
 
@@ -94,6 +97,7 @@ func ReceiveFile(conn net.Conn, dir string) {
 		io.CopyN(newFile, conn, BufferSize)
 		received += BufferSize
 	}
+	logger.FileSuccess(fileName, "received")
 }
 
 func fillBuffer(data string, length int) string {

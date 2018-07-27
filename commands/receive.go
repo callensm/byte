@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net"
 	"path/filepath"
+	"strconv"
 
 	"github.com/callensm/byte/utils"
 	"github.com/spf13/cobra"
@@ -41,8 +42,15 @@ func receiveFunc(cmd *cobra.Command, args []string) {
 	logger.Info(fmt.Sprintf("Listening for connections on %s", portAddr))
 
 	conn, err := server.Accept()
+	defer conn.Close()
 	utils.Catch(err)
-	utils.ReceiveFile(conn, dir)
-
 	logger.Info(fmt.Sprintf("Connection received from %s", conn.RemoteAddr()))
+
+	numOfFilesBuffer := make([]byte, utils.FileCountBufferSize)
+	conn.Read(numOfFilesBuffer)
+	count, _ := strconv.ParseInt(string(numOfFilesBuffer), 10, 64)
+
+	for x := 0; x < int(count); x++ {
+		utils.ReceiveFile(conn, dir)
+	}
 }

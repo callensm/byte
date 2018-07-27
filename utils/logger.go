@@ -47,9 +47,9 @@ func (l *Logger) Error(str string) {
 // FileSuccess is a log that occurs when a file
 // has been successfully sent from origin to destination
 // and download is complete at its destination
-func (l *Logger) FileSuccess(name string) {
+func (l *Logger) FileSuccess(name string, action string) {
 	header := color.GreenString("[FILE]")
-	text := color.WhiteString("%s sent", name)
+	text := color.WhiteString("%s %s", name, action)
 	display(header, fmt.Sprintf("%s %s", text, color.GreenString("✔")))
 }
 
