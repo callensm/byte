@@ -47,19 +47,28 @@ func (l *Logger) Error(str string) {
 // FileSuccess is a log that occurs when a file
 // has been successfully sent from origin to destination
 // and download is complete at its destination
-func (l *Logger) FileSuccess(name string, action string) {
-	header := color.GreenString("[FILE]")
-	text := color.WhiteString("%s %s", name, action)
-	display(header, fmt.Sprintf("%s %s", text, color.GreenString("✔")))
+func (l *Logger) FileSuccess(name string) {
+	text := color.WhiteString("%s", name)
+	display(" ↳ 📄", fmt.Sprintf("%s %s", text, color.GreenString("✔")))
 }
 
 // FileError is a log for when a file failed
 // to either be sent from origin to destination or the
 // file could not successfully download
 func (l *Logger) FileError(name string) {
-	header := color.RedString("[FILE]")
 	text := color.WhiteString("%s failed to send", name)
-	display(header, fmt.Sprintf("%s %s", text, color.RedString("𝘅")))
+	display(" ↳ 📄", fmt.Sprintf("%s %s", text, color.RedString("𝘅")))
+}
+
+// Directory logs which directory the files are coming from and how many
+func (l *Logger) Directory(size int, path string, sending bool) {
+	var text string
+	if sending {
+		text = color.WhiteString("Sending %d files from %s:", size, path)
+	} else {
+		text = color.WhiteString("Writting %d files to %s:", size, path)
+	}
+	display("📁", text)
 }
 
 // Clear prints two special unicode character
@@ -70,6 +79,7 @@ func (l *Logger) Clear() {
 	fmt.Print("\033[H")
 }
 
+// display writes the argued header and text to the console
 func display(header, text string) {
 	fmt.Printf("%s %s\n", header, text)
 }
