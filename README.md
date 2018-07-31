@@ -10,8 +10,6 @@ $ cd $GOPATH/src/github.com/callensm/byte && make
 ```
 
 ## Usage
-There are currently two main commands, `send` and `receive`.
-
 ### *send*
 ```sh
 byte send -a [<IP>|<IP>:<PORT>] -s [<PATH_TO_CONTENT>]
@@ -31,6 +29,15 @@ byte receive -d [<PATH_TO_DEST_DIR>] -p [PORT?]
 | :----: | :---: | :--------------------------------------------------------------------------------------: | :----------------------------------------: |
 | --dir  | -d    | Set the path to the destination directory for files to be written to                     | `~/Desktop/destination/`                   |
 | --port | -p    | Set the port to listen for incoming connections on. If not given, default port is `4500` | `~/Desktop/myfiles/`, `~/Desktop/data.txt` |
+
+### *view*
+```sh
+byte view -r [<PATH_TO_ROOT>]
+```
+
+| Option | Alias | Description                                          | Example                  |
+| :----: | :---: | :--------------------------------------------------: | :----------------------: |
+| --root | -r    | Set the path to the root directory for the file tree | `~/Desktop/destination/` |
 
 ## License
 [MIT](./LICENSE)

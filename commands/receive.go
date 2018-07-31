@@ -12,18 +12,17 @@ import (
 
 var dir string
 var port uint32
+var receiveCmd = &cobra.Command{
+	Use:   "receive",
+	Short: "Download files sent over socket connection",
+	Run:   receiveFunc,
+}
 
 func init() {
 	receiveCmd.Flags().StringVarP(&dir, "dir", "d", "", "Directory to download received files to")
 	receiveCmd.Flags().Uint32VarP(&port, "port", "p", 4500, "Port to listen for socket connections")
 	receiveCmd.MarkFlagRequired("dir")
 	rootCmd.AddCommand(receiveCmd)
-}
-
-var receiveCmd = &cobra.Command{
-	Use:   "receive",
-	Short: "Download files sent over socket connection",
-	Run:   receiveFunc,
 }
 
 func receiveFunc(cmd *cobra.Command, args []string) {

@@ -15,6 +15,11 @@ import (
 
 var addr string
 var source string
+var sendCmd = &cobra.Command{
+	Use:   "send",
+	Short: "Send files over socket connection to be downloaded",
+	Run:   sendFunc,
+}
 
 func init() {
 	sendCmd.Flags().StringVarP(&addr, "addr", "a", "", "Address to attempt to connect to [IP_ADRR:PORT] or [IP_ADDR] for default port")
@@ -22,12 +27,6 @@ func init() {
 	sendCmd.MarkFlagRequired("addr")
 	sendCmd.MarkFlagRequired("src")
 	rootCmd.AddCommand(sendCmd)
-}
-
-var sendCmd = &cobra.Command{
-	Use:   "send",
-	Short: "Send files over socket connection to be downloaded",
-	Run:   sendFunc,
 }
 
 func sendFunc(cmd *cobra.Command, args []string) {
