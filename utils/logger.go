@@ -76,7 +76,7 @@ func (l *Logger) Directory(size int, path string, sending bool) {
 func (l *Logger) Tree(tree string) {
 	bookend := color.GreenString("[TREE:%d]", len(tree))
 	text := color.WhiteString(tree)
-	display(bookend, fmt.Sprintf("%s\n%s", text, bookend))
+	display(bookend, fmt.Sprintf("\n%s\n%s", text, bookend))
 }
 
 // Clear prints two special unicode character

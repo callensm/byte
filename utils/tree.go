@@ -2,7 +2,6 @@ package utils
 
 import (
 	"bytes"
-	"encoding/base64"
 	"encoding/json"
 	"io/ioutil"
 	"path/filepath"
@@ -42,26 +41,13 @@ func NewTree(path string) *Tree {
 	return t
 }
 
-// NewTreeFromB64 decodes the argued base64 encoded string and
-// unmarshals the data into a Tree struct and returns a pointer
+// NewTreeFromJSON returns a pointer
 // to the new unmarshalled data structure
-func NewTreeFromB64(encoding []byte) *Tree {
-	data := make([]byte, base64.StdEncoding.EncodedLen(len(encoding)))
-	_, err := base64.StdEncoding.Decode(data, encoding)
-	Catch(err)
-	data = bytes.Trim(data, "\x00")
-
+func NewTreeFromJSON(encoding []byte) *Tree {
 	tree := new(Tree)
-	err = json.Unmarshal(data, tree)
+	err := json.Unmarshal(encoding, tree)
 	Catch(err)
-
 	return tree
-}
-
-// ToB64 encodes the Stringer implementation of the
-// Tree struct into Base64 encoding and returns the hash
-func (tree *Tree) ToB64() string {
-	return base64.StdEncoding.EncodeToString([]byte(tree.String()))
 }
 
 // String is the Stringer interface implementation

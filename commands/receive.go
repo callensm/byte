@@ -1,10 +1,10 @@
 package commands
 
 import (
+	"bufio"
 	"fmt"
 	"net"
 	"path/filepath"
-	"strconv"
 
 	"github.com/callensm/byte/utils"
 	"github.com/spf13/cobra"
@@ -52,17 +52,18 @@ func receiveFunc(cmd *cobra.Command, args []string) {
 	utils.Catch(err)
 	utils.RemoveSpinner("listening", fmt.Sprintf("Connection received from %s", conn.RemoteAddr()))
 
-	// Read in the initial message from the client socket
-	// indicating how many files to expect to be written to the
-	// socket connection for transfer
-	numOfFilesBuffer := make([]byte, utils.FileCountBufferSize)
-	conn.Read(numOfFilesBuffer)
-	count, _ := strconv.ParseInt(string(numOfFilesBuffer), 10, 64)
+	// Create a buffered reader for the connection and read the sent
+	// JSON structure describing the file system that is about to be
+	// received for download
+	utils.CreateSpinner(22, "blue", "Waiting to receive file structure...", "get_struct")
+	r := bufio.NewReader(conn)
+	structure, _ := r.ReadBytes('\x00')
+	fileTree := utils.NewTreeFromJSON(structure)
+	utils.RemoveSpinner("get_struct", "Received file structure being sent!")
+	logger.Tree(fileTree.Display())
 
-	// Loop `count` times to accept all expected inbound files
-	// to be rewritten to the destination path
-	logger.Directory(int(count), path, false)
-	for x := 0; x < int(count); x++ {
-		utils.Download(conn, dir)
-	}
+	// Use the generated file tree sent over the connection to create
+	// directories that do not exist for files to be written in
+	err = utils.CreateDirectories(fileTree, dir)
+	utils.Catch(err)
 }

@@ -2,12 +2,9 @@ package commands
 
 import (
 	"fmt"
-	"io/ioutil"
 	"net"
 	"path/filepath"
-	"strconv"
 	"strings"
-	"time"
 
 	"github.com/callensm/byte/utils"
 	"github.com/spf13/cobra"
@@ -64,21 +61,13 @@ func sendFunc(cmd *cobra.Command, args []string) {
 		conn.Write([]byte("001"))
 		utils.Upload(conn, path)
 	} else {
-		// Get the list of all files in the argued
-		// directory and create the string that indicates
-		// the number of files in that directory
-		fileList, _ := ioutil.ReadDir(path)
-		lenStr := strconv.Itoa(len(fileList))
-		countMsg := strings.Repeat("0", utils.FileCountBufferSize-len(lenStr)) + lenStr
+		// Create the description file tree for the argued path
+		utils.CreateSpinner(22, "blue", "Compiling a descriptive structure for the files to send", "send_struct")
+		fileTree := utils.NewTree(path)
+		treeEncoding := fileTree.String()
 
-		// Tell the receiver socket how many files to expect
-		// could be from 1-999 files, and then loop through the
-		// file list and sychronously send each through the connection
-		logger.Directory(len(fileList), path, true)
-		conn.Write([]byte(countMsg))
-		for _, f := range fileList {
-			utils.Upload(conn, filepath.Join(path, f.Name()))
-			time.Sleep(100 * time.Millisecond)
-		}
+		// Join the encoded structure with the byte length and send to socket
+		conn.Write([]byte(treeEncoding))
+		utils.RemoveSpinner("send_struct", "JSON file structure was sent!")
 	}
 }
