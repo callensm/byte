@@ -82,13 +82,47 @@ func receiveFunc(cmd *cobra.Command, args []string) {
 	// Use the generated file tree sent over the connection to create
 	// directories that do not exist for files to be written in
 	utils.CreateSpinner(22, "blue", "Creating file directory structure...", "make_dirs")
-	utils.CreateDirectories(fileTree, dir)
+	createDirectories(fileTree, dir)
 	utils.RemoveSpinner("make_dirs", "File directories created!", true)
 
 	count := fileTree.CountLeaves()
 	for i := 0; i < count; i++ {
-		utils.Download(client, dir)
+		download(client, dir)
 	}
 
 	logger.Info(fmt.Sprintf("Finished downloading %d files!", count))
+}
+
+// Download reads all file data from the incoming
+// socket buffer and rewrites the data into a new local
+// file with the same name
+func download(c *utils.Client, dir string) {
+	name := c.Fetch('\n')
+	fileName := string(name)
+
+	// Open or create a new file with the argued file name in the destination directory
+	full := filepath.Join(dir, fileName)
+	newFile, err := os.Create(full)
+	utils.Catch(err)
+	defer newFile.Close()
+
+	data := c.Fetch('\x00')
+	_, err = newFile.Write(data)
+	utils.Catch(err)
+	logger.FileSuccess(fileName)
+}
+
+// CreateDirectories walks the Tree struct argued and
+// creates all of the directories described in the struct
+// for the files to eventuall be written to
+func createDirectories(tree *utils.Tree, base string) {
+	path := filepath.Join(base, tree.Name)
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		err := os.Mkdir(path, os.ModePerm)
+		utils.Catch(err)
+	}
+
+	for _, sub := range tree.SubTrees {
+		createDirectories(sub, path)
+	}
 }

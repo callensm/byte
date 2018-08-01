@@ -2,10 +2,12 @@ package commands
 
 import (
 	"fmt"
+	"io/ioutil"
 	"net"
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/callensm/byte/utils"
 	"github.com/spf13/cobra"
@@ -88,7 +90,41 @@ func sendFunc(cmd *cobra.Command, args []string) {
 		utils.RemoveSpinner("get_approval", "File transfer approved!", true)
 
 		logger.Info("Preparing to send files...")
-		utils.UploadTree(filepath.Base(source), filepath.Dir(source), fileTree, client)
+		uploadTree(filepath.Base(source), filepath.Dir(source), fileTree, client)
 		logger.Info(fmt.Sprintf("Successfully sent %d files!", fileTree.CountLeaves()))
+	}
+}
+
+// Upload reads the argued file name
+// and writes the data to the socket connection
+// to be downloaded at the destination socket
+func upload(c *utils.Client, localPath, destPath string) {
+	logger.Warn(destPath)
+	c.Post([]byte(destPath + "\n"))
+
+	file, err := os.Open(localPath)
+	defer file.Close()
+	utils.Catch(err)
+	contents, err := ioutil.ReadAll(file)
+	utils.Catch(err)
+
+	contents = append(contents, '\x00')
+	c.Post(contents)
+}
+
+// UploadTree traverses an entire Tree structure and upload each
+// file to the socket connection
+func uploadTree(root, dir string, t *utils.Tree, c *utils.Client) {
+	path := filepath.Join(dir, t.Name)
+	fromRoot := filepath.Join(root, strings.Split(path, root)[1])
+
+	for _, leaf := range t.Leaves {
+		openPath := filepath.Join(path, leaf)
+		upload(c, openPath, filepath.Join(fromRoot, leaf))
+		time.Sleep(50 * time.Millisecond)
+	}
+
+	for _, s := range t.SubTrees {
+		uploadTree(root, filepath.Join(dir, t.Name), s, c)
 	}
 }
