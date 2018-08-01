@@ -3,6 +3,7 @@ package utils
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/fatih/color"
 )
@@ -22,7 +23,7 @@ func NewLogger() *Logger {
 func (l *Logger) Info(str string) {
 	header := color.BlueString("[INFO]")
 	text := color.WhiteString(str)
-	display(header, text)
+	display(header, text+"\n")
 }
 
 // Warn is used for logging warnings to the user
@@ -30,7 +31,7 @@ func (l *Logger) Info(str string) {
 func (l *Logger) Warn(str string) {
 	header := color.YellowString("[WARN]")
 	text := color.WhiteString(str)
-	display(header, text)
+	display(header, text+"\n")
 }
 
 // Error is used for logging error messages
@@ -40,8 +41,18 @@ func (l *Logger) Warn(str string) {
 func (l *Logger) Error(str string) {
 	header := color.RedString("[ERROR]")
 	text := color.WhiteString(str)
-	display(header, text)
+	display(header, text+"\n")
 	os.Exit(1)
+}
+
+// Prompt requests user import for a given prompt
+func (l *Logger) Prompt(str string) string {
+	q := color.New(color.FgYellow, color.Bold)
+	display(q.Sprint("?"), str)
+	res := make([]byte, 2)
+	_, err := os.Stdin.Read(res)
+	Catch(err)
+	return strings.ToLower(strings.Trim(string(res), "\n"))
 }
 
 // FileSuccess is a log that occurs when a file
@@ -49,7 +60,7 @@ func (l *Logger) Error(str string) {
 // and download is complete at its destination
 func (l *Logger) FileSuccess(name string) {
 	text := color.WhiteString("%s", name)
-	display(" ↳ 📄", fmt.Sprintf("%s %s", text, color.GreenString("✔")))
+	display(" ↳ 📄", fmt.Sprintf("%s %s\n", text, color.GreenString("✔")))
 }
 
 // FileError is a log for when a file failed
@@ -57,16 +68,16 @@ func (l *Logger) FileSuccess(name string) {
 // file could not successfully download
 func (l *Logger) FileError(name string) {
 	text := color.WhiteString("%s failed to send", name)
-	display(" ↳ 📄", fmt.Sprintf("%s %s", text, color.RedString("𝘅")))
+	display(" ↳ 📄", fmt.Sprintf("%s %s\n", text, color.RedString("𝘅")))
 }
 
 // Directory logs which directory the files are coming from and how many
 func (l *Logger) Directory(size int, path string, sending bool) {
 	var text string
 	if sending {
-		text = color.WhiteString("Sending %d files from %s:", size, path)
+		text = color.WhiteString("Sending %d files from %s:\n", size, path)
 	} else {
-		text = color.WhiteString("Writing %d files to %s:", size, path)
+		text = color.WhiteString("Writing %d files to %s:\n", size, path)
 	}
 	display("📁", text)
 }
@@ -76,7 +87,7 @@ func (l *Logger) Directory(size int, path string, sending bool) {
 func (l *Logger) Tree(tree string) {
 	bookend := color.GreenString("[TREE:%d]", len(tree))
 	text := color.WhiteString(tree)
-	display(bookend, fmt.Sprintf("\n%s\n%s", text, bookend))
+	display(bookend, fmt.Sprintf("\n%s\n%s\n", text, bookend))
 }
 
 // Clear prints two special unicode character
@@ -89,5 +100,5 @@ func (l *Logger) Clear() {
 
 // display writes the argued header and text to the console
 func display(header, text string) {
-	fmt.Printf("%s %s\n", header, text)
+	fmt.Printf("%s %s", header, text)
 }

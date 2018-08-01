@@ -22,13 +22,14 @@ byte send -a [<IP>|<IP>:<PORT>] -s [<PATH_TO_CONTENT>]
 
 ### *receive*
 ```sh
-byte receive -d [<PATH_TO_DEST_DIR>] -p [PORT?]
+byte receive -d [<PATH_TO_DEST_DIR>] -p [PORT?] -a
 ```
 
-| Option | Alias | Description                                                                              | Example                                    |
-| :----: | :---: | :--------------------------------------------------------------------------------------: | :----------------------------------------: |
-| --dir  | -d    | Set the path to the destination directory for files to be written to                     | `~/Desktop/destination/`                   |
-| --port | -p    | Set the port to listen for incoming connections on. If not given, default port is `4500` | `~/Desktop/myfiles/`, `~/Desktop/data.txt` |
+| Option         | Alias | Description                                                                                   | Example                                    |
+| :------------: | :---: | :-------------------------------------------------------------------------------------------: | :----------------------------------------: |
+| --dir          | -d    | Set the path to the destination directory for files to be written to                          | `~/Desktop/destination/`                   |
+| --port         | -p    | Set the port to listen for incoming connections on. If not given, default port is `4500`      | `~/Desktop/myfiles/`, `~/Desktop/data.txt` |
+| --auto-approve | -a    | Whether to require approval of file structure being sent. Defaults to `false` if not provided | -                                          |
 
 ### *view*
 ```sh

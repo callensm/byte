@@ -2,6 +2,7 @@ package utils
 
 import (
 	"fmt"
+	"io"
 	"time"
 
 	"github.com/briandowns/spinner"
@@ -13,7 +14,9 @@ var spinners = make(map[string]*spinner.Spinner)
 
 // Catch handles Go library errors
 func Catch(err error) {
-	if err != nil {
+	if err == io.EOF {
+		return
+	} else if err != nil {
 		logger.Error(err.Error())
 	}
 }
@@ -31,9 +34,16 @@ func CreateSpinner(set int, clr, text, tag string) {
 }
 
 // RemoveSpinner stops and deletes a spinner from the map
-func RemoveSpinner(tag, text string) {
+func RemoveSpinner(tag, text string, success bool) {
 	if s, ok := spinners[tag]; ok {
-		s.FinalMSG = fmt.Sprintf("%s %s\n", color.GreenString("✔"), text)
+		var prefix string
+		if success {
+			prefix = color.GreenString("✔")
+		} else {
+			prefix = color.RedString("𝗫")
+		}
+
+		s.FinalMSG = fmt.Sprintf("%s %s\n", prefix, text)
 		s.Stop()
 		delete(spinners, tag)
 	}

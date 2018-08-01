@@ -14,7 +14,7 @@ var addr string
 var source string
 var sendCmd = &cobra.Command{
 	Use:   "send",
-	Short: "Send files over socket connection to be downloaded",
+	Short: "Send files over client connection to be downloaded",
 	Run:   sendFunc,
 }
 
@@ -52,12 +52,16 @@ func sendFunc(cmd *cobra.Command, args []string) {
 	conn, err := net.Dial("tcp", finalAddr)
 	defer conn.Close()
 	utils.Catch(err)
-	utils.RemoveSpinner("connecting", fmt.Sprintf("Connected to %s", finalAddr))
+	utils.RemoveSpinner("connecting", fmt.Sprintf("Connected to %s", finalAddr), true)
+
+	// Create buffered reader and writer from the connection
+	client := utils.NewClient(&conn)
 
 	if utils.IsFile(path) {
-		// Tell the receiver socket to only expect
+		// Tell the receiver client to only expect
 		// one file if the path pointer to a single file
 		// and then send the file through the connection
+		// TODO: Rewrite single file transfer to fit new protocol
 		conn.Write([]byte("001"))
 		utils.Upload(conn, path)
 	} else {
@@ -66,8 +70,19 @@ func sendFunc(cmd *cobra.Command, args []string) {
 		fileTree := utils.NewTree(path)
 		treeEncoding := fileTree.String()
 
-		// Join the encoded structure with the byte length and send to socket
-		conn.Write([]byte(treeEncoding))
-		utils.RemoveSpinner("send_struct", "JSON file structure was sent!")
+		// Send the encoded file tree JSON data to the receiver
+		client.Post([]byte(treeEncoding + "\x00"))
+		utils.RemoveSpinner("send_struct", "JSON file structure was sent!", true)
+
+		// Attempt to receive approval to send files
+		utils.CreateSpinner(22, "yellow", "Waiting for approval to send files...", "get_approval")
+		approved := client.Fetch('\n')
+
+		// Handle the received approval status for the file structure
+		apprStatus := string(approved)
+		if apprStatus == "n" {
+			utils.RemoveSpinner("get_approval", "Your transfer request was denied.", false)
+		}
+		utils.RemoveSpinner("get_approval", "File transfer approved!", true)
 	}
 }

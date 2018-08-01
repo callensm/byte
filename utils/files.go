@@ -43,18 +43,16 @@ func IsFile(path string) bool {
 // CreateDirectories walks the Tree struct argued and
 // creates all of the directories described in the struct
 // for the files to eventuall be written to
-func CreateDirectories(tree *Tree, base string) error {
+func CreateDirectories(tree *Tree, base string) {
 	path := filepath.Join(base, tree.Name)
-	os.Mkdir(path, os.ModePerm)
-
-	for _, sub := range tree.SubTrees {
-		err := CreateDirectories(sub, path)
-		if err != nil {
-			return err
-		}
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		err := os.Mkdir(path, os.ModePerm)
+		Catch(err)
 	}
 
-	return nil
+	for _, sub := range tree.SubTrees {
+		CreateDirectories(sub, path)
+	}
 }
 
 // Upload reads the argued file name

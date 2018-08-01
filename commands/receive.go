@@ -1,9 +1,10 @@
 package commands
 
 import (
-	"bufio"
+	"bytes"
 	"fmt"
 	"net"
+	"os"
 	"path/filepath"
 
 	"github.com/callensm/byte/utils"
@@ -12,6 +13,7 @@ import (
 
 var dir string
 var port uint32
+var autoApprove bool
 var receiveCmd = &cobra.Command{
 	Use:   "receive",
 	Short: "Download files sent over socket connection",
@@ -21,6 +23,7 @@ var receiveCmd = &cobra.Command{
 func init() {
 	receiveCmd.Flags().StringVarP(&dir, "dir", "d", "", "Directory to download received files to")
 	receiveCmd.Flags().Uint32VarP(&port, "port", "p", 4500, "Port to listen for socket connections")
+	receiveCmd.Flags().BoolVarP(&autoApprove, "auto-approve", "a", false, "Whether or not to require file structure approval")
 	receiveCmd.MarkFlagRequired("dir")
 	rootCmd.AddCommand(receiveCmd)
 }
@@ -50,20 +53,35 @@ func receiveFunc(cmd *cobra.Command, args []string) {
 	conn, err := server.Accept()
 	defer conn.Close()
 	utils.Catch(err)
-	utils.RemoveSpinner("listening", fmt.Sprintf("Connection received from %s", conn.RemoteAddr()))
+	utils.RemoveSpinner("listening", fmt.Sprintf("Connection received from %s", conn.RemoteAddr()), true)
 
-	// Create a buffered reader for the connection and read the sent
+	// Create a buffered reader writer for the connection and read the sent
 	// JSON structure describing the file system that is about to be
 	// received for download
+	client := utils.NewClient(&conn)
 	utils.CreateSpinner(22, "blue", "Waiting to receive file structure...", "get_struct")
-	r := bufio.NewReader(conn)
-	structure, _ := r.ReadBytes('\x00')
-	fileTree := utils.NewTreeFromJSON(structure)
-	utils.RemoveSpinner("get_struct", "Received file structure being sent!")
-	logger.Tree(fileTree.Display())
+	structure := client.Fetch('\x00')
+	fileTree := utils.NewTreeFromJSON(bytes.TrimRight(structure, "\x00"))
+	utils.RemoveSpinner("get_struct", "Received file structure being sent!", true)
+
+	// Get the user's approval for the received file structure
+	// exit gracefully if denied and continue if approved
+	// after sending the other user the approval status
+	appr := []byte("y")
+	if !autoApprove {
+		logger.Tree(fileTree.Display())
+		res := logger.Prompt("Do you want to approve this tree (y/n): ")
+		appr = []byte(res)
+	}
+
+	client.Post(appr)
+	if string(appr) == "n" {
+		os.Exit(0)
+	}
 
 	// Use the generated file tree sent over the connection to create
 	// directories that do not exist for files to be written in
-	err = utils.CreateDirectories(fileTree, dir)
-	utils.Catch(err)
+	utils.CreateSpinner(22, "blue", "Creating file directory structure...", "make_dirs")
+	utils.CreateDirectories(fileTree, dir)
+	utils.RemoveSpinner("make_dirs", "File directories created!", true)
 }
