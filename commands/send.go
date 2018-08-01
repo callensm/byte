@@ -3,6 +3,7 @@ package commands
 import (
 	"fmt"
 	"net"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -62,8 +63,8 @@ func sendFunc(cmd *cobra.Command, args []string) {
 		// one file if the path pointer to a single file
 		// and then send the file through the connection
 		// TODO: Rewrite single file transfer to fit new protocol
-		conn.Write([]byte("001"))
-		utils.Upload(conn, path)
+		// conn.Write([]byte("001"))
+		// utils.Upload(conn, path)
 	} else {
 		// Create the description file tree for the argued path
 		utils.CreateSpinner(22, "blue", "Compiling a descriptive structure for the files to send", "send_struct")
@@ -82,7 +83,12 @@ func sendFunc(cmd *cobra.Command, args []string) {
 		apprStatus := string(approved)
 		if apprStatus == "n" {
 			utils.RemoveSpinner("get_approval", "Your transfer request was denied.", false)
+			os.Exit(0)
 		}
 		utils.RemoveSpinner("get_approval", "File transfer approved!", true)
+
+		logger.Info("Preparing to send files...")
+		utils.UploadTree(filepath.Base(source), filepath.Dir(source), fileTree, client)
+		logger.Info(fmt.Sprintf("Successfully sent %d files!", fileTree.CountLeaves()))
 	}
 }

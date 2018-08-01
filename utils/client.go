@@ -40,5 +40,5 @@ func (c *Client) Post(data []byte) {
 func (c *Client) Fetch(delim byte) []byte {
 	b, err := c.Reader.ReadBytes(delim)
 	Catch(err)
-	return bytes.Trim(b, "\x00")
+	return bytes.Trim(b, string(delim))
 }

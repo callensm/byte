@@ -43,7 +43,7 @@ func RemoveSpinner(tag, text string, success bool) {
 			prefix = color.RedString("𝗫")
 		}
 
-		s.FinalMSG = fmt.Sprintf("%s %s\n", prefix, text)
+		s.FinalMSG = fmt.Sprintf("%s  %s\n", prefix, text)
 		s.Stop()
 		delete(spinners, tag)
 	}

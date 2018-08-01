@@ -1,12 +1,11 @@
 package utils
 
 import (
-	"io"
-	"net"
+	"io/ioutil"
 	"os"
 	"path/filepath"
-	"strconv"
 	"strings"
+	"time"
 )
 
 const (
@@ -58,69 +57,53 @@ func CreateDirectories(tree *Tree, base string) {
 // Upload reads the argued file name
 // and writes the data to the socket connection
 // to be downloaded at the destination socket
-func Upload(conn net.Conn, path string) {
-	// Open the file at the argued path and get the information for it
-	file, err := os.Open(path)
+func Upload(c *Client, localPath, destPath string) {
+	logger.Warn(destPath)
+	c.Post([]byte(destPath + "\n"))
+
+	file, err := os.Open(localPath)
+	defer file.Close()
 	Catch(err)
-	fileInfo, err := file.Stat()
+	contents, err := ioutil.ReadAll(file)
 	Catch(err)
 
-	// Create the buffers for the size and name of the file to be write over TCP
-	size := fillBuffer(strconv.FormatInt(fileInfo.Size(), 10), FileSizeBufferSize)
-	name := fillBuffer(fileInfo.Name(), FileNameBufferSize)
+	contents = append(contents, '\x00')
+	c.Post(contents)
+}
 
-	// Write each of the file information buffers
-	conn.Write([]byte(size))
-	conn.Write([]byte(name))
+// UploadTree traverses an entire Tree structure and upload each
+// file to the socket connection
+func UploadTree(root, dir string, t *Tree, c *Client) {
+	path := filepath.Join(dir, t.Name)
+	fromRoot := filepath.Join(root, strings.Split(path, root)[1])
 
-	// Create the file content buffer and continuously read the file into
-	// until we have reached the end of the file, sending each chunk
-	// over the connection before reading more
-	fileDataBuffer := make([]byte, BufferSize)
-	for {
-		_, err := file.Read(fileDataBuffer)
-		if err == io.EOF {
-			break
-		}
-		conn.Write(fileDataBuffer)
+	for _, leaf := range t.Leaves {
+		openPath := filepath.Join(path, leaf)
+		Upload(c, openPath, filepath.Join(fromRoot, leaf))
+		time.Sleep(50 * time.Millisecond)
 	}
-	logger.FileSuccess(fileInfo.Name())
+
+	for _, s := range t.SubTrees {
+		UploadTree(root, filepath.Join(dir, t.Name), s, c)
+	}
 }
 
 // Download reads all file data from the incoming
 // socket buffer and rewrites the data into a new local
 // file with the same name
-func Download(conn net.Conn, dir string) {
-	// Create the file name and size buffers to read the socket into
-	fileNameBuffer := make([]byte, FileNameBufferSize)
-	fileSizeBuffer := make([]byte, FileSizeBufferSize)
-
-	// Read the file size from the socket connection into its buffer and parse it
-	conn.Read(fileSizeBuffer)
-	fileSize, err := strconv.ParseInt(strings.Trim(string(fileSizeBuffer), ":"), 10, 64)
-	Catch(err)
-
-	// Read the file name from the socket connection into its buffer and parse it
-	conn.Read(fileNameBuffer)
-	fileName := strings.Trim(string(fileNameBuffer), ":")
+func Download(c *Client, dir string) {
+	name := c.Fetch('\n')
+	fileName := string(name)
 
 	// Open or create a new file with the argued file name in the destination directory
-	newFile, err := os.Create(filepath.Join(dir, fileName))
+	full := filepath.Join(dir, fileName)
+	newFile, err := os.Create(full)
 	Catch(err)
 	defer newFile.Close()
 
-	// Continuously copy the buffered file content chunks from the socket connection
-	// into the newly created file until we have pipped all chunks into the file
-	var received int64
-	for {
-		if (fileSize - received) < BufferSize {
-			io.CopyN(newFile, conn, (fileSize - received))
-			conn.Read(make([]byte, (received + BufferSize - fileSize)))
-			break
-		}
-		io.CopyN(newFile, conn, BufferSize)
-		received += BufferSize
-	}
+	data := c.Fetch('\x00')
+	_, err = newFile.Write(data)
+	Catch(err)
 	logger.FileSuccess(fileName)
 }
 

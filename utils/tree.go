@@ -21,8 +21,7 @@ type Tree struct {
 // information and returns a pointer to the new struct
 func NewTree(path string) *Tree {
 	var err error
-	base := filepath.Base(path)
-	t := &Tree{Name: base}
+	t := &Tree{Name: filepath.Base(path)}
 
 	// Read all entities within the current argued path
 	fileList, err := ioutil.ReadDir(path)
@@ -30,7 +29,9 @@ func NewTree(path string) *Tree {
 	for _, f := range fileList {
 		// If it is a file, append it to the leaves array
 		if !f.IsDir() {
-			t.Leaves = append(t.Leaves, f.Name())
+			if filepath.Ext(f.Name()) != ".db" {
+				t.Leaves = append(t.Leaves, f.Name())
+			}
 			continue
 		}
 

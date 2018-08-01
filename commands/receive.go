@@ -67,11 +67,11 @@ func receiveFunc(cmd *cobra.Command, args []string) {
 	// Get the user's approval for the received file structure
 	// exit gracefully if denied and continue if approved
 	// after sending the other user the approval status
-	appr := []byte("y")
+	appr := []byte("y\n")
 	if !autoApprove {
 		logger.Tree(fileTree.Display())
 		res := logger.Prompt("Do you want to approve this tree (y/n): ")
-		appr = []byte(res)
+		appr = []byte(res + "\n")
 	}
 
 	client.Post(appr)
@@ -84,4 +84,11 @@ func receiveFunc(cmd *cobra.Command, args []string) {
 	utils.CreateSpinner(22, "blue", "Creating file directory structure...", "make_dirs")
 	utils.CreateDirectories(fileTree, dir)
 	utils.RemoveSpinner("make_dirs", "File directories created!", true)
+
+	count := fileTree.CountLeaves()
+	for i := 0; i < count; i++ {
+		utils.Download(client, dir)
+	}
+
+	logger.Info(fmt.Sprintf("Finished downloading %d files!", count))
 }

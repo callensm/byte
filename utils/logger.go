@@ -18,10 +18,19 @@ func NewLogger() *Logger {
 	return new(Logger)
 }
 
+// Clear prints two special unicode character
+// sequences to clear the terminal and move the
+// cursor back to the home position
+func (l *Logger) Clear() {
+	fmt.Print("\033[2J")
+	fmt.Print("\033[H")
+}
+
 // Info is used for logging basic information to
 // the console for visual purposes
 func (l *Logger) Info(str string) {
-	header := color.BlueString("[INFO]")
+	h := color.New(color.FgBlue, color.Bold)
+	header := h.Sprint("ⓘ ")
 	text := color.WhiteString(str)
 	display(header, text+"\n")
 }
@@ -29,7 +38,8 @@ func (l *Logger) Info(str string) {
 // Warn is used for logging warnings to the user
 // in the console if something unexpected happened
 func (l *Logger) Warn(str string) {
-	header := color.YellowString("[WARN]")
+	h := color.New(color.FgYellow, color.Bold)
+	header := h.Sprint("! ")
 	text := color.WhiteString(str)
 	display(header, text+"\n")
 }
@@ -39,7 +49,8 @@ func (l *Logger) Warn(str string) {
 // processing or the execution of a command
 // based on argument or option inputs
 func (l *Logger) Error(str string) {
-	header := color.RedString("[ERROR]")
+	h := color.New(color.FgRed, color.Bold)
+	header := h.Sprint("𝗫 ")
 	text := color.WhiteString(str)
 	display(header, text+"\n")
 	os.Exit(1)
@@ -48,7 +59,7 @@ func (l *Logger) Error(str string) {
 // Prompt requests user import for a given prompt
 func (l *Logger) Prompt(str string) string {
 	q := color.New(color.FgYellow, color.Bold)
-	display(q.Sprint("?"), str)
+	display(q.Sprint("? "), str)
 	res := make([]byte, 2)
 	_, err := os.Stdin.Read(res)
 	Catch(err)
@@ -88,14 +99,6 @@ func (l *Logger) Tree(tree string) {
 	bookend := color.GreenString("[TREE:%d]", len(tree))
 	text := color.WhiteString(tree)
 	display(bookend, fmt.Sprintf("\n%s\n%s\n", text, bookend))
-}
-
-// Clear prints two special unicode character
-// sequences to clear the terminal and move the
-// cursor back to the home position
-func (l *Logger) Clear() {
-	fmt.Print("\033[2J")
-	fmt.Print("\033[H")
 }
 
 // display writes the argued header and text to the console
