@@ -14,6 +14,9 @@ test: clean pretest
 pretest:
 	mkdir coverage
 
+travis: clean
+	go test $(TEST_PKGS) -v -cover
+
 clean:
 	rm -rf $(GOPATH)/bin/$(PKG_NAME) ./coverage
 
