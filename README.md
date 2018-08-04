@@ -1,5 +1,4 @@
 # Byte
-![TRAVIS_STATUS][travis-url]
 
 ## Installation
 
@@ -43,5 +42,3 @@ byte view -r [<PATH_TO_ROOT>]
 
 ## License
 [MIT](./LICENSE)
-
-[travis-url]: https://travis-ci.org/callensm/byte.svg?branch=master
