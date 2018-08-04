@@ -1,4 +1,5 @@
 # Byte
+[![CircleCI](https://circleci.com/gh/callensm/byte.svg?style=shield)](https://circleci.com/gh/callensm/byte)
 
 ## Installation
 
