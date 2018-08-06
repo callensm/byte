@@ -9,11 +9,21 @@ jobs:
     <<: *defaults
     steps:
       - checkout
-      - run: dep ensure
-      - run: make build
+      - run:
+          name: Ensure Dependencies
+          command: dep ensure
+      - run:
+          name: Create Binary
+          command: make build
+      - run:
+          name: Zip Binary with Version
+          command: |
+            mkdir /tmp/build/
+            export BIN_VERSION=`cat VERSION | cut -d'-' -f1`
+            zip /tmp/build/byte-$BIN_VERSION.zip /go/bin/byte
 
       - store_artifacts:
-          path: /go/bin/byte
+          path: /tmp/build/
 
   test:
     <<: *defaults
@@ -28,12 +38,12 @@ jobs:
       - run:
           name: Run Go Test Files
           command: |
-            trap "go-junit-report < ${TEST_RESULTS}/go-test.out > ${TEST_RESULTS}/go-test-report.xml" EXIT
-            make test | tee ${TEST_RESULTS}/go-test.out
+            trap "go-junit-report < ${TEST_RESULTS}/coverage.out > ${TEST_RESULTS}/coverage-report.xml" EXIT
+            make test | tee ${TEST_RESULTS}/coverage.out
 
       - store_artifacts:
           path: /tmp/test-results
-          destination: raw-test-output
+          destination: test-output
       
       - store_test_results:
           path: /tmp/test-results

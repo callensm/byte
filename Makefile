@@ -6,11 +6,14 @@ default: test build
 build:
 	go install
 
-test: clean
-	go test $(TEST_PKGS) -v -cover
+pretest: clean
+	mkdir coverage
+
+test: pretest
+	go test $(TEST_PKGS) -v -coverprofile=coverage/coverage.out
 
 clean:
-	rm -f $(GOPATH)/bin/$(PKG_NAME)
+	rm -rf $(GOPATH)/bin/$(PKG_NAME) ./coverage
 
 reset:
 	rm ./test/dest/*
