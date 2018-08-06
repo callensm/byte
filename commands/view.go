@@ -27,7 +27,7 @@ func viewFunc(cmd *cobra.Command, args []string) {
 	}
 
 	// Create the Tree structure instance from the argued root
-	tree := utils.NewTree(root)
+	tree, _ := utils.NewTree(root)
 
 	// Print the indented/formatted version of the marshalled JSON
 	logger.Info(fmt.Sprintf("Sub-directories: %d", tree.CountSubTrees()))

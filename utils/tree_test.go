@@ -13,7 +13,7 @@ func TestNewTree(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	tree := NewTree(treePath)
+	tree, _ := NewTree(treePath)
 	if tree == nil {
 		t.Errorf("NewTree returned a null pointer instead of *Tree instance")
 	}
@@ -40,7 +40,7 @@ func TestNewTree(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	treeWithSubs := NewTree(newTreePath)
+	treeWithSubs, _ := NewTree(newTreePath)
 	if len(treeWithSubs.SubTrees) == 0 {
 		t.Error("Initialized with 0 sub-trees, expecting 1 or more")
 	}
@@ -55,6 +55,18 @@ func TestTreeJSON(t *testing.T) {
 
 	if tree.String() == "" || tree.Display() == "" {
 		t.Error("Failed to marshal *Tree into JSON string")
+	}
+}
+
+func TestIgnoredFiles(t *testing.T) {
+	path, err := filepath.Abs("../")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, ignored := NewTree(path)
+	if len(ignored) == 0 {
+		t.Errorf("No ignored files were found from the tree, expecting >1")
 	}
 }
 
@@ -75,7 +87,7 @@ func TestCountLeaves(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	tree := NewTree(path)
+	tree, _ := NewTree(path)
 	if x, y := tree.CountLeaves(), total; x != y {
 		t.Errorf("CountLeaves returned %d file count, expected %d", x, y)
 	}
@@ -100,7 +112,7 @@ func TestCountSubTrees(t *testing.T) {
 
 	// Subtract one from total because filepath.Walk counts the root directory
 	total--
-	tree := NewTree(path)
+	tree, _ := NewTree(path)
 	if x, y := tree.CountSubTrees(), total; x != y {
 		t.Errorf("CountSubTrees returned %d directory count, expected %d", x, y)
 	}
