@@ -70,12 +70,15 @@ func sendFunc(cmd *cobra.Command, args []string) {
 	} else {
 		// Create the description file tree for the argued path
 		utils.CreateSpinner(22, "blue", "Compiling a descriptive structure for the files to send", "send_struct")
-		fileTree := utils.NewTree(path)
+		fileTree, ignored := utils.NewTree(path)
 		treeEncoding := fileTree.String()
 
 		// Send the encoded file tree JSON data to the receiver
 		client.Post([]byte(treeEncoding + "\x00"))
 		utils.RemoveSpinner("send_struct", "JSON file structure was sent!", true)
+		for _, i := range ignored {
+			logger.Warn(fmt.Sprintf("File or folder `%s` was ignored", i))
+		}
 
 		// Attempt to receive approval to send files
 		utils.CreateSpinner(22, "yellow", "Waiting for approval to send files...", "get_approval")

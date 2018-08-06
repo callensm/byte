@@ -5,6 +5,22 @@ import (
 	"testing"
 )
 
+func TestIsIgnored(t *testing.T) {
+	names := []string{
+		"node_modules",
+		".git",
+		"vendor",
+		"test.db",
+		"yarn.lock",
+	}
+
+	for _, n := range names {
+		if !IsIgnored(n) {
+			t.Errorf("File/folder %s wasn't ignored, but should have been", n)
+		}
+	}
+}
+
 func TestIsDir(t *testing.T) {
 	exists, err := filepath.Abs("../commands")
 	if err != nil {

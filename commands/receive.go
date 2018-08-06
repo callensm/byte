@@ -75,7 +75,7 @@ func receiveFunc(cmd *cobra.Command, args []string) {
 	}
 
 	client.Post(appr)
-	if string(appr) == "n" {
+	if string(appr) == "n\n" {
 		os.Exit(0)
 	}
 

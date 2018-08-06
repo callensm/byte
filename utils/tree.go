@@ -19,8 +19,8 @@ type Tree struct {
 // NewTree populates a new Tree struct instance
 // after walking to file system gathering necessary
 // information and returns a pointer to the new struct
-func NewTree(path string) *Tree {
-	var err error
+func NewTree(path string) (*Tree, []string) {
+	var ignored []string
 	t := &Tree{Name: filepath.Base(path)}
 
 	// Read all entities within the current argued path
@@ -28,18 +28,21 @@ func NewTree(path string) *Tree {
 	Catch(err)
 	for _, f := range fileList {
 		// If it is a file, append it to the leaves array
-		if !f.IsDir() {
-			if filepath.Ext(f.Name()) != ".db" {
+		if !IsIgnored(f.Name()) {
+			if !f.IsDir() {
 				t.Leaves = append(t.Leaves, f.Name())
+				continue
 			}
-			continue
-		}
 
-		// If it was a directory, recursively build a subtree from that path
-		sub := NewTree(filepath.Join(path, f.Name()))
-		t.SubTrees = append(t.SubTrees, sub)
+			// If it was a directory, recursively build a subtree from that path
+			sub, ign := NewTree(filepath.Join(path, f.Name()))
+			t.SubTrees = append(t.SubTrees, sub)
+			ignored = append(ignored, ign...)
+		} else {
+			ignored = append(ignored, f.Name())
+		}
 	}
-	return t
+	return t, ignored
 }
 
 // NewTreeFromJSON returns a pointer
